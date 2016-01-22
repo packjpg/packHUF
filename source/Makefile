@@ -1,26 +1,56 @@
-# Project: packHUF
-# Makefile created by Matthias Stirner 01/30/2012
-# Working with GCC 4.6.0
+# packXXX Makefile, based on UniMake: Universal Makefile
+# Created by Matthias Stirner, 01/2016
 
-CC      = gcc
-CPP     = g++
-RC      = windres -O coff
-RM      = del
-CFLAGS  = -DDEV_BUILD -I. -O3 -Wall -Wno-long-long -pedantic -funroll-loops -ffast-math -fsched-spec-load -fomit-frame-pointer
-LDFLAGS = -s -static-libgcc -static-libstdc++
-DEPS    = huffcoder.h bitops.h phuftbl.h Makefile
-OBJ     = huffcoder.o bitops.o packhuf.o
-RES     = icons.res
-BIN     = packHUF
+TARGET   = packHUF
+CC       = gcc
+CPP      = g++
+RC       = windres -O coff
+CPPFLAGS = -I. -O3 -Wall -pedantic -funroll-loops -ffast-math -fsched-spec-load -fomit-frame-pointer
+LDFLAGS  = -static -static-libgcc -static-libstdc++
+CSRC     = $(wildcard *.c)
+CPPSRC   = $(wildcard *.cpp)
+DEPS     = $(wildcard *.h) Makefile
+OBJ      = $(patsubst %.c,%.o,$(CSRC)) $(patsubst %.cpp,%.o,$(CPPSRC))
+
+# conditional stuff
+ifeq ($(OS),Windows_NT)
+LDFLAGS  += -lpthread -L libwinpthread-1.dll
+RES       = icons.res
+UPX      := -upx --best --lzma $(TARGET).exe
+else
+CPPFLAGS += -DUNIX
+RC        = 
+RES       =
+UPX       =
+endif
 
 %.o: %.cpp $(DEPS)
-	$(CPP) -c -o $@ $< $(CFLAGS)
+	$(CPP) -c -o $@ $< $(CPPFLAGS)
 	
 %.res: %.rc
-	$(RC) $< $@
-	
-$(BIN): $(OBJ) $(RES)
-	$(CPP) -o $@ $^ $(LDFLAGS)
+	@-$(RC) $< $@
+
+$(TARGET): $(OBJ) $(RES)
+	$(CPP) -o $@ $^ -s $(LDFLAGS)
+	$(UPX)
+
+.PHONY: all dev lib dll
+
+all: $(TARGET)
+
+dev: CPPFLAGS += -DDEV_BUILD
+dev: $(TARGET)
+
+lib: CPPFLAGS += -DBUILD_LIB
+lib: $(OBJ)
+	ar r $(TARGET)lib.a $(OBJ)
+	ranlib $(TARGET)lib.a
+    
+dll: CPPFLAGS += -DBUILD_DLL
+dll: LDFLAGS  += -Wl,--out-implib,libpackJPG.a -fvisibility=hidden
+dll: $(OBJ)
+	$(CPP) -shared -o $(TARGET).dll $^ $(LDFLAGS)
 
 clean:
-	$(RM) *.o
+	@echo clean...
+	@-rm *.o *.a $(TARGET) $(TARGET).exe $(TARGET).dll
