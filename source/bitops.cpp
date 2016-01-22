@@ -13,7 +13,7 @@ reading and writing of arrays
 
 // special realloc with guaranteed free() of previous memory
 static inline void* frealloc( void* ptr, size_t size ) {
-	void* n_ptr = realloc( ptr, size );
+	void* n_ptr = realloc( ptr, (size) ? size : 1 );
 	if ( n_ptr == NULL ) free( ptr );
 	return n_ptr;
 }
@@ -291,13 +291,12 @@ unsigned char* abitwriter::getptr( void )
 {
 	// data is padded here
 	pad( fillbit );
-	if ( cbyte > 0 ) {
-		// forbid freeing memory
-		fmem = false;
-		// realloc data
-		data = (unsigned char*) frealloc( data, cbyte );
-		return data;
-	} else return NULL;
+	// forbid freeing memory
+	fmem = false;
+	// realloc data
+	data = (unsigned char*) frealloc( data, cbyte );
+	
+	return data;
 }
 
 /* -----------------------------------------------
