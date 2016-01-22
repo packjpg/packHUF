@@ -181,7 +181,7 @@ INTERN const unsigned char appversion = 2;
 INTERN const char*  subversion   = "f";
 INTERN const char*  apptitle     = "packHUF";
 INTERN const char*  appname      = "packHUF";
-INTERN const char*  versiondate  = "01/22/2014";
+INTERN const char*  versiondate  = "01/22/2016";
 INTERN const char*  author       = "Matthias Stirner";
 #if !defined(BUILD_LIB)
 INTERN const char*  website      = "http://packjpg.encode.ru/";
